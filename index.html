@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CENTRO DE MANDO - CNCS</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; overflow-x: hidden; }
+        .gold-master { color: #EAB308; }
+        .match-card { background: #1e293b; border-left: 4px solid #EAB308; transition: all 0.2s; position: relative; }
+        .match-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxVUGkT3YGuMHczsTsusYZhXGW88iCKQE",
+            authDomain: "toreneo-rud-cncs.firebaseapp.com",
+            databaseURL: "https://toreneo-rud-cncs-default-rtdb.firebaseio.com",
+            projectId: "toreneo-rud-cncs",
+            storageBucket: "toreneo-rud-cncs.firebasestorage.app",
+            messagingSenderId: "1041320850078",
+            appId: "1:1041320850078:web:c1565b8099e86f120ac18f"
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const CLAVE_MAESTRA = "ahr2505"; // Nueva clave inyectada
+
+        function App() {
+            const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+            const [inputClave, setInputClave] = React.useState("");
+            const [view, setView] = React.useState('prog');
+            const [activeDay, setActiveDay] = React.useState('Sábado');
+            const [partidos, setPartidos] = React.useState({});
+
+            React.useEffect(() => {
+                if (isAuthenticated) {
+                    const ref = db.ref('cncs_torneo/partidos');
+                    ref.on('value', (snap) => setPartidos(snap.val() || {}));
+                    return () => ref.off();
+                }
+            }, [isAuthenticated]);
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if (inputClave === CLAVE_MAESTRA) setIsAuthenticated(true);
+                else alert("Acceso Denegado. Clave incorrecta.");
+            };
+
+            const handleProgramar = (dia, cancha, hora) => {
+                const j1 = prompt("Nombre Desafiador:");
+                const j2 = prompt("Nombre Desafiado:");
+                const cat = prompt("Categoría:", "Singles Honor");
+                if (j1 && j2) {
+                    db.ref(`cncs_torneo/partidos/${dia}_${cancha}_${hora}`).set({ j1, j2, cat, score: "" });
+                }
+            };
+
+            const handleScore = (key) => {
+                const score = prompt("Ingrese resultado (ej: 6-4 6-2):");
+                if (score !== null) db.ref(`cncs_torneo/partidos/${key}`).update({ score });
+            };
+
+            const handleEliminar = (key) => {
+                if (confirm("¿Eliminar partido?")) db.ref(`cncs_torneo/partidos/${key}`).remove();
+            };
+
+            if (!isAuthenticated) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center bg-[#0F172A]">
+                        <div className="bg-slate-900 p-10 rounded-3xl border border-slate-800 shadow-2xl w-96 text-center">
+                            <div className="w-20 h-20 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">🏆</div>
+                            <h2 className="text-2xl font-black text-white mb-2 italic uppercase">Centro de Mando</h2>
+                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-8 italic">Almirante al Mando</p>
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <input 
+                                    type="password" 
+                                    placeholder="Contraseña de Seguridad"
+                                    className="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl text-center font-bold focus:outline-none focus:border-yellow-500 transition-all"
+                                    value={inputClave}
+                                    onChange={(e) => setInputClave(e.target.value)}
+                                />
+                                <button className="w-full bg-yellow-500 text-slate-900 font-black py-4 rounded-xl hover:scale-105 transition-all shadow-lg uppercase text-xs tracking-widest">Desbloquear Sistema</button>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <header className="h-16 bg-slate-900 border-b border-slate-800 flex items-center px-8 justify-between">
+                        <div className="flex items-center gap-4">
+                            <span className="text-xl">⚓</span>
+                            <h1 className="font-black text-lg italic uppercase tracking-tighter">Administración <span className="gold-master">CNCS Salinas</span></h1>
+                        </div>
+                        <div className="flex gap-4">
+                            <button onClick={() => setView('prog')} className={`text-xs font-black px-4 py-2 rounded-lg ${view === 'prog' ? 'bg-yellow-500 text-navy' : 'text-slate-400'}`}>PROGRAMACIÓN</button>
+                            <button onClick={() => setIsAuthenticated(false)} className="text-xs font-black px-4 py-2 bg-red-500/10 text-red-500 rounded-lg">CERRAR BÓVEDA</button>
+                        </div>
+                    </header>
+
+                    <main className="p-8 flex-1 overflow-auto">
+                        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 no-scrollbar">
+                            {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(d => (
+                                <button key={d} onClick={() => setActiveDay(d)} className={`px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${activeDay === d ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500'}`}>{d}</button>
+                            ))}
+                        </div>
+
+                        <div className="bg-slate-900/50 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
+                            <table className="w-full text-center border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-900 border-b border-slate-800">
+                                        <th className="p-4 gold-master text-[10px] font-black uppercase">Hora</th>
+                                        {[1,2,3,4,5].map(c => <th key={c} className="p-4 text-[10px] font-black uppercase text-slate-400 border-l border-slate-800">Cancha {c}</th>)}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'].map(h => (
+                                        <tr key={h} className="border-b border-slate-800/50">
+                                            <td className="p-4 font-mono text-emerald-400 font-black text-lg">{h}</td>
+                                            {[1,2,3,4,5].map(c => {
+                                                const key = `${activeDay}_${c}_${h}`;
+                                                const p = partidos[key];
+                                                return (
+                                                    <td key={c} className="p-2 h-40 border-l border-slate-800/50">
+                                                        {p ? (
+                                                            <div className="match-card p-3 rounded-xl h-full flex flex-col justify-between text-left shadow-lg">
+                                                                <div>
+                                                                    <p className="text-[9px] gold-master font-black uppercase mb-1 tracking-tighter">{p.cat}</p>
+                                                                    <p className="text-[11px] font-black text-white uppercase truncate">{p.j1}</p>
+                                                                    <p className="text-[11px] font-black text-white uppercase truncate">{p.j2}</p>
+                                                                    {p.score && <p className="mt-2 text-[10px] font-mono bg-slate-950 p-1.5 rounded text-emerald-400 text-center font-bold shadow-inner">{p.score}</p>}
+                                                                </div>
+                                                                <div className="flex gap-1 mt-3">
+                                                                    <button onClick={() => handleScore(key)} className="flex-1 bg-emerald-600 text-slate-900 text-[9px] font-black py-2 rounded-lg uppercase shadow-md hover:bg-emerald-500 transition-colors">Score</button>
+                                                                    <button onClick={() => handleEliminar(key)} className="bg-red-500/10 text-red-500 px-3 rounded-lg font-black hover:bg-red-500 hover:text-white transition-all text-xs">×</button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <button onClick={() => handleProgramar(activeDay, c, h)} className="w-full h-full border border-dashed border-slate-800 rounded-xl hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all text-slate-700 hover:text-emerald-500 text-[10px] font-black uppercase tracking-widest">+ Programar</button>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </main>
+                    <footer className="h-10 bg-slate-950 flex items-center px-8 justify-between text-[9px] font-bold text-slate-600 tracking-[0.2em] uppercase">
+                        <span>Sistema de Gestión de Torneos V1.8.1</span>
+                        <span className="gold-master">Propiedad Exclusiva del Almirante</span>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
