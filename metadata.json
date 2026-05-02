@@ -1,0 +1,6 @@
+{
+  "name": "CNCS Centro de Control",
+  "description": "Panel de control para torneos de tenis con funcionalidad de programación y drag and drop.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

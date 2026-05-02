@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0A0A0A;
+  --color-navy2: #0F0F0F;
+  --color-navy3: #161616;
+  
+  --color-gold: #818CF8;
+  --color-gold2: #E0E7FF;
+  
+  --color-white: #FFFFFF;
+  --color-muted: #6B7280;
+  
+  --color-danger: #EF4444;
+  --color-danger2: #FCA5A5;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-border-strong: rgba(255, 255, 255, 0.1);
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-syne: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  @apply bg-slate-950 text-slate-300 font-sans h-screen flex flex-col overflow-hidden;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-width: thin;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+}
+
+.editor-gradient {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media print {
+   /* Hide UI not meant to be printed */
+   .print-hide {
+      display: none !important;
+   }
+   
+   /* Configuration for print */
+   body, #root {
+      background: white !important;
+      color: black !important;
+      height: auto !important;
+      overflow: visible !important;
+   }
+   
+   /* Allow lines, borders, and specific bg colors (grayscaled) to print */
+   * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+   }
+
+   /* Make sure bracket scales correctly */
+   #bracket-capture-inner {
+      width: max-content !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      transform-origin: top left;
+   }
+
+   /* Make sure children don't wrap strangely */
+   .flex {
+      page-break-inside: avoid;
+      break-inside: avoid;
+   }
+
+   
+   /* Help avoid breaking matches across pages */
+   .relative.shrink-0 {
+      page-break-inside: avoid;
+      break-inside: avoid;
+   }
+
+   /* Page sizing for A4 in landscape */
+   @page {
+      size: A4 landscape;
+      margin: 10mm;
+   }
+}
